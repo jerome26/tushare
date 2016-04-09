@@ -20,6 +20,7 @@ TERMINATED_T_COLS = ['COMPANY_CODE', 'COMPANY_ABBR', 'LISTING_DATE', 'CHANGE_DAT
 LHB_KINDS = ['ggtj', 'yytj', 'jgzz', 'jgmx']
 LHB_GGTJ_COLS = ['code', 'name', 'count', 'bamount', 'samount', 'net', 'bcount', 'scount']
 LHB_YYTJ_COLS = ['broker', 'count', 'bamount', 'bcount', 'samount', 'scount', 'top3']
+LHB_YYMX_COLS = ['code', 'name', 'date', 'bamount', 'samount', 'type']
 LHB_JGZZ_COLS = ['code', 'name', 'bamount', 'bcount', 'samount', 'scount', 'net']
 LHB_JGMX_COLS = ['code', 'name', 'date', 'bamount', 'samount', 'type']
 TERMINATED_COLS = ['code', 'name', 'oDate', 'tDate']

@@ -30,6 +30,10 @@ class Test(unittest.TestCase):
         
     def test_inst_detail(self):
         print(fd.inst_detail())  
+
+    def test_broker_tops_detail(self):
+        self.set_data()
+        print(fd.broker_tops_detail())
         
 if __name__ == "__main__":
     unittest.main()

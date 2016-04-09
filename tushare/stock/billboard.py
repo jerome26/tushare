@@ -208,7 +208,74 @@ def _broker_tops(last=5, pageNo=1, retry_count=3, pause=0.001, dataArr=pd.DataFr
                 return dataArr
         except Exception as e:
             print(e)
-        
+
+def broker_tops_detail(retry_count= 3, pause= 0.001):
+    """
+    获取营业部上榜统计数据对应明细数据
+    Parameters
+    --------
+    days:int
+              天数，统计n天以来上榜次数，默认为5天，其余是10、30、60
+    retry_count : int, 默认 3
+                 如遇网络等问题重复执行的次数 
+    pause : int, 默认 0
+                重复请求数据过程中暂停的秒数，防止请求间隔时间太短出现的问题
+    Return
+    ---------
+    broker：营业部名称
+    code: 代码
+    name: 名称
+    date: 日期
+    bamount：累积购买额(万)
+    samount：累积卖出额(万)
+    type: 类型
+    """
+    if ct._check_lhb_input(days) is True:
+        ct._write_head()
+        df =  _broker_tops_detail(days, pageNo=1, retry_count=retry_count,
+                        pause=pause)
+        return df
+
+
+
+def _broker_tops_detail(last=5, pageNo=1, retry_count=3, pause=0.001, dataArr=pd.DataFrame()):
+    ct._write_console()
+    for _ in range(retry_count):
+        time.sleep(pause)
+        try:
+            request = Request(rv.LHB_SINA_URL%(ct.P_TYPE['http'], ct.DOMAINS['vsf'], rv.LHB_KINDS[1],
+                                               ct.PAGES['fd'], last, pageNo))
+            text = urlopen(request, timeout=10).read()
+            text = text.decode('GBK')
+            html = lxml.html.parse(StringIO(text))
+            res = html.xpath("//table[@id=\"dataTable\"]/tr/a")
+            urls = [a.attrib['href'] for a in res]
+            for url in urls:
+                time.sleep(pause)
+                request2 = Request(url)
+                text2 = urlopen(request2, timeout=10).read()
+                html2 = lxml.html.parse(StringIO(text2.decode('GBK')))
+                res2 = html2.xpath("//table[@id=\"dataTable\"]/tr")
+                broker = html2.xpath("//div[@class=\"page_config\"]").text_content().strip()
+                if ct.PY3:
+                    sarr = [etree.tostring(node).decode('utf-8') for node in res2]
+                else:
+                    sarr = [etree.tostring(node) for node in res2]
+                sarr = ''.join(sarr)
+                sarr = '<table>%s</table>'%sarr
+                df = pd.read_html(sarr)[0]
+                df.columns = rv.LHB_YYMX_COLS
+                df['broker'] = pd.Series([broker]*df.index.size, index=list(df.index))
+                dataArr = dataArr.append(df, ignore_index=True)
+            nextPage = html.xpath('//div[@class=\"pages\"]/a[last()]/@onclick')
+            if len(nextPage)>0:
+                pageNo = re.findall(r'\d+', nextPage[0])[0]
+                return _broker_tops_detail(last, pageNo, retry_count, pause, dataArr)
+            else:
+                return dataArr
+        except Exception as e:
+            print(e)
+
 
 def inst_tops(days= 5, retry_count= 3, pause= 0.001):
     """
