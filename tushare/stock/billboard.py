@@ -209,7 +209,7 @@ def _broker_tops(last=5, pageNo=1, retry_count=3, pause=0.001, dataArr=pd.DataFr
         except Exception as e:
             print(e)
 
-def broker_tops_detail(retry_count= 3, pause= 0.001):
+def broker_tops_detail(days= 5, retry_count= 3, pause= 0.001):
     """
     获取营业部上榜统计数据对应明细数据
     Parameters
@@ -228,7 +228,7 @@ def broker_tops_detail(retry_count= 3, pause= 0.001):
     date: 日期
     bamount：累积购买额(万)
     samount：累积卖出额(万)
-    type: 类型
+    reason：上榜原因
     """
     if ct._check_lhb_input(days) is True:
         ct._write_head()
@@ -248,15 +248,19 @@ def _broker_tops_detail(last=5, pageNo=1, retry_count=3, pause=0.001, dataArr=pd
             text = urlopen(request, timeout=10).read()
             text = text.decode('GBK')
             html = lxml.html.parse(StringIO(text))
-            res = html.xpath("//table[@id=\"dataTable\"]/tr/a")
+            res = html.xpath("//table[@id=\"dataTable\"]/tr/td/a")
             urls = [a.attrib['href'] for a in res]
+            if len(urls) <= 0:
+                return dataArr
             for url in urls:
+                ct._write_console()
                 time.sleep(pause)
                 request2 = Request(url)
                 text2 = urlopen(request2, timeout=10).read()
                 html2 = lxml.html.parse(StringIO(text2.decode('GBK')))
                 res2 = html2.xpath("//table[@id=\"dataTable\"]/tr")
-                broker = html2.xpath("//div[@class=\"page_config\"]").text_content().strip()
+                broker = html2.xpath("//div[@class=\"page_config\"]")[0].text_content().strip().split(':')[1].strip()
+                ct._write_msg(broker + "\n")
                 if ct.PY3:
                     sarr = [etree.tostring(node).decode('utf-8') for node in res2]
                 else:
@@ -403,3 +407,4 @@ def _f_rows(x):
         for i in range(1, 6):
             x[i] = np.NaN
     return x
+
