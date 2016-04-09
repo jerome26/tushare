@@ -260,7 +260,7 @@ def _broker_tops_detail(last=5, pageNo=1, retry_count=3, pause=0.001, dataArr=pd
                 html2 = lxml.html.parse(StringIO(text2.decode('GBK')))
                 res2 = html2.xpath("//table[@id=\"dataTable\"]/tr")
                 broker = html2.xpath("//div[@class=\"page_config\"]")[0].text_content().strip().split(':')[1].strip()
-                ct._write_msg(broker + "\n")
+                ct._write_msg(broker + "\r\n")
                 if ct.PY3:
                     sarr = [etree.tostring(node).decode('utf-8') for node in res2]
                 else:
